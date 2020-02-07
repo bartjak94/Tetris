@@ -28,6 +28,8 @@ public:
     int pieceCordX;
     int pieceCordY;
 
+    bool isStopped;
+
     int placedTab[10][15];
     QGraphicsRectItem *ulozone[10*15];
     int ilosc_ulozonych;
@@ -38,6 +40,12 @@ public:
     void moveRectsRight();
     void moveRectsLeft();
     void updateRects();
+    void grabNewPiece(bool b);
+    bool canMove(int x, int y);
+    void checkForFullLines();
+    void dropLine(int a);
+
+
 public slots:
     void updateHolder();
 private:
