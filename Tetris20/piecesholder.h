@@ -17,6 +17,7 @@ public:
     PiecesHolder(int w, int h);
     myPiece piece;
     QGraphicsRectItem *kwadrat[4];
+    QTimer * timer = new QTimer();
 
     int width;
     int heigth;
@@ -28,6 +29,8 @@ public:
     int pieceCordY;
 
     int placedTab[10][15];
+    QGraphicsRectItem *ulozone[10*15];
+    int ilosc_ulozonych;
 
     void keyPressEvent(QKeyEvent *event);
     void drawRects();

@@ -13,6 +13,7 @@ PiecesHolder::PiecesHolder(int w, int h)
 
     init = false;
     getNewPiece = false;
+    ilosc_ulozonych = 0;
 
     for(int i=0;i<10;i++)
     {
@@ -23,7 +24,7 @@ PiecesHolder::PiecesHolder(int w, int h)
     }
 
 
-    QTimer * timer = new QTimer();
+    //QTimer * timer = new QTimer();
     connect(timer,SIGNAL(timeout()),this,SLOT(updateHolder()));
     timer->start(500);
 
@@ -59,7 +60,8 @@ void PiecesHolder::keyPressEvent(QKeyEvent *event)
 
     else if(event->key() == Qt::Key_Space)
     {
-        drawRects();
+        //drawRects();
+        timer->stop();
     }
 
 
@@ -83,17 +85,38 @@ void PiecesHolder::drawRects()
 
 void PiecesHolder::moveRectsDown()
 {
-
+    int val1;
+    int val2;
+    int miny;
     for(int i=0;i<4;i++)
     {
+        //tutaj
+        //znajdz max y klockow o x = x spadajacego
+        for(int j=0;j<ilosc_ulozonych;j++)
+        {
+            //mamy elementy z tym samym q co dany klocek
+            if( ulozone[i]->rect().x() + ulozone[i]->x() == kwadrat[i]->rect().x() + kwadrat[i]->x()   )
+            {
+                //znalezc miny
+                //qDebug() << "SAME COORDS";
+                miny = 600;
+                if(  (ulozone[i]->rect().y() + ulozone[i]->y()) < miny )
+                {
+                    miny = ulozone[i]->rect().y() + ulozone[i]->y();
+                    qDebug() << "Znaleziono klocki w linii, Y = " << miny;
+                }
+            }
+        }
+        val1 = (kwadrat[i]->rect().x() + kwadrat[i]->x())/40;
+        val2 = (kwadrat[i]->rect().y() + kwadrat[i]->y())/40;
 
-        if(  ( kwadrat[i]->y() + (-(piece.findMinY() - (piece.findMaxY() + 1)) * blockSize) ) < heigth)
+
+
+        if(  ( kwadrat[i]->y() + (-(piece.findMinY() - (piece.findMaxY() + 1)) * blockSize) ) < heigth
+
+             )
         {
         kwadrat[i]->moveBy(0,blockSize);
-
-            qDebug() << "X: " << kwadrat[i]->rect().x() << kwadrat[i]->x()<< "Y: " << kwadrat[i]->rect().y() << kwadrat[i]->y();
-            qDebug() << "X: " << ( (kwadrat[i]->rect().x() - 200)/blockSize) << (kwadrat[i]->x())/blockSize<< "Y: " << (kwadrat[i]->rect().y())/blockSize << (kwadrat[i]->y())/blockSize;
-            qDebug() << " ";
         getNewPiece = false;
         }
         else
@@ -102,12 +125,14 @@ void PiecesHolder::moveRectsDown()
         }
 
 
+
+/*
         if(//znaleziono w tablicy 1 na polu ponizej klocka z miny)
             placedTab[][qMax(kwadrat[i]->rect().y(),kwadrat[i]->rect())])
                 )
         {
 
-        }
+        }*/
     }
 
 }
@@ -147,7 +172,27 @@ void PiecesHolder::updateHolder()
     {
         moveRectsDown();
         if(getNewPiece)
+        {
+            int val1;
+            int val2;
+            for(int i=0;i<4;i++)
+            {
+                //qDebug() << kwadrat[i]->rect().x() + kwadrat[i]->x() << kwadrat[i]->rect().y() + kwadrat[i]->y();
+                val1 = (kwadrat[i]->rect().x() + kwadrat[i]->x())/40;
+                val2 = (kwadrat[i]->rect().y() + kwadrat[i]->y())/40;
+               // qDebug() << (kwadrat[i]->rect().x() + kwadrat[i]->x())/40 << (kwadrat[i]->rect().y() + kwadrat[i]->y())/40;
+                //qDebug() << val1 << val2;
+               // qDebug() << "";
+                placedTab[val1][val2] = 1;
+                ulozone[ilosc_ulozonych+i] = kwadrat[i];
+            }
+            ilosc_ulozonych+=4;
+
+            for(int j=0;j<ilosc_ulozonych;j++)
+                qDebug() << ulozone[j]->rect().x() + ulozone[j]->x();
             drawRects();
+
+        }
     }
 
 }
