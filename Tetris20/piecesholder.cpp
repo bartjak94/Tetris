@@ -30,30 +30,49 @@ PiecesHolder::PiecesHolder(int w, int h)
 
 void PiecesHolder::keyPressEvent(QKeyEvent *event)
 {
-    int tmp[4][2];
     if(event->key() == Qt::Key_Up)
     {
-        for(int i=0;i<4;i++)
-        {
-         qDebug() << "KW X: " << kwadrat[i]->rect().x(); //polozenie kazdego kwadratu w stosunku do poczatku figury
-         //qDebug() << "KW X: " << kwadrat[i]->x();  //polozenie calej figury w stosunku do punktu poczatkowego
-        // qDebug() << "Piece X: " << piece.getX(i) << "( " << 240 + piece.getX(i) * blockSize  << ")";
-
-         qDebug() << "KW Y: " << kwadrat[i]->rect().y();
-         //qDebug() << "KW Y: " << kwadrat[i]->y();
-         //qDebug() << "Piece Y: " << piece.getY(i) << "( " << piece.getY(i)*blockSize - piece.findMinY()*40 << ")";
-
-
-        }
-
-        piece = piece.rotate();
-        qDebug() << " ";
+        int t1 = 0;
+        int t2 = 0;
+        bool canRotate = true;
+        tmpPiece = piece.rotate();
         pieceCordX = width/2 + blockSize;
         pieceCordY = 0;
         for(int i=0;i<4;i++)
         {
-            kwadrat[i]->setRect(pieceCordX+piece.getX(i)*blockSize,pieceCordY+piece.getY(i)*blockSize - piece.findMinY()*40,blockSize,blockSize);
+            t1 = kwadrat[i]->x() + pieceCordX + tmpPiece.getX(i)*blockSize; //x real
+            t2 = kwadrat[i]->y() +pieceCordY+tmpPiece.getY(i)*blockSize - tmpPiece.findMinY()*blockSize; //y real
+            qDebug() << t1 << t2;
+            if(     //jezeli jest na prawo od 0
+                    t1 < 0
+                    || //i na lewo od 400
+                    t1 >= width
+                    || //i wyzej niz minimum
+                    t2 >= heigth
+                    || // i pole akurat nie jest zajete
+                    placedTab[t1/blockSize][t2/blockSize] == 1
+                    )
+            {
+                canRotate = false;
+            }
+            /*
+            qDebug() << "pos before: " << kwadrat[i]->pos();
+            qDebug() << kwadrat[i]->rect();
+            qDebug() << "pos after: " << kwadrat[i]->pos();
+            qDebug() << kwadrat[i]->rect().x() + kwadrat[i]->x() << kwadrat[i]->rect().y() + kwadrat[i]->y();
+            qDebug() << "Z klocka (" << tmpPiece.getX(i) << "," << tmpPiece.getY(i);
+            qDebug() << "Pozycja klocka po rotacji: " << kwadrat[0]->x() + pieceCordX + tmpPiece.getX(i)*blockSize <<  kwadrat[0]->y() +pieceCordY+tmpPiece.getY(i)*blockSize - tmpPiece.findMinY()*40;
+            qDebug() << " ";
+*/
         }
+        if(canRotate)
+        {
+            for(int i=0;i<4;i++)
+             kwadrat[i]->setRect(pieceCordX+tmpPiece.getX(i)*blockSize,pieceCordY+tmpPiece.getY(i)*blockSize - tmpPiece.findMinY()*40,blockSize,blockSize);
+            piece=tmpPiece;
+        }
+        canRotate = true;
+
 
     }
     if(event->key() == Qt::Key_Left)
@@ -126,8 +145,13 @@ void PiecesHolder::drawRects()
             kwadrat[i]->setBrush(Qt::gray);
             break;
         }
-        kwadrat[i]->setRect(pieceCordX+piece.getX(i)*blockSize,pieceCordY+piece.getY(i)*blockSize - piece.findMinY()*40,blockSize,blockSize);
-        scene()->addItem(kwadrat[i]);
+        if(placedTab[(pieceCordX+piece.getX(i)*blockSize)/blockSize][(pieceCordY+piece.getY(i)*blockSize - piece.findMinY()*blockSize)/blockSize] != 1)
+        {
+            kwadrat[i]->setRect(pieceCordX+piece.getX(i)*blockSize,pieceCordY+piece.getY(i)*blockSize - piece.findMinY()*blockSize,blockSize,blockSize);
+            scene()->addItem(kwadrat[i]);
+        }
+        else
+            timer->stop();
     }
     init = true;
 }
@@ -194,8 +218,8 @@ void PiecesHolder::grabNewPiece(bool b)
         int val2;
         for(int i=0;i<4;i++)
         {
-            val1 = (kwadrat[i]->rect().x() + kwadrat[i]->x())/40;
-            val2 = (kwadrat[i]->rect().y() + kwadrat[i]->y())/40;
+            val1 = (kwadrat[i]->rect().x() + kwadrat[i]->x())/blockSize;
+            val2 = (kwadrat[i]->rect().y() + kwadrat[i]->y())/blockSize;
             placedTab[val1][val2] = 1;
             ulozone[ilosc_ulozonych+i] = kwadrat[i];
            }
@@ -210,8 +234,8 @@ bool PiecesHolder::canMove(int x, int y)
     int v2;
     for(int j = 0; j < 4; j++)
     {
-        v1 = (kwadrat[j]->rect().x() + kwadrat[j]->x()) / 40;
-        v2 = (kwadrat[j]->rect().y() + kwadrat[j]->y()) / 40;
+        v1 = (kwadrat[j]->rect().x() + kwadrat[j]->x()) / blockSize;
+        v2 = (kwadrat[j]->rect().y() + kwadrat[j]->y()) / blockSize;
         if(placedTab[v1+x][v2+y] == 1)
             return false;
     }
@@ -243,8 +267,8 @@ void PiecesHolder::dropLine(int a)
     {
         if(ulozone[i]->rect().y() + ulozone[i]->y() == heigth - (((heigth/blockSize) - a )* blockSize))
         {
-            v1 = (ulozone[i]->rect().x() + ulozone[i]->x())  / 40;
-            v2 = (ulozone[i]->rect().y() + ulozone[i]->y())  / 40;
+            v1 = (ulozone[i]->rect().x() + ulozone[i]->x())  / blockSize;
+            v2 = (ulozone[i]->rect().y() + ulozone[i]->y())  / blockSize;
             //scene()->removeItem(ulozone[i]);
             ulozone[i]->setPos(1000,1000);
             placedTab[v1][v2] = 0;

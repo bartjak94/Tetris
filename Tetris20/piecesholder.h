@@ -16,6 +16,7 @@ class PiecesHolder : public QObject,public QGraphicsRectItem
 public:
     PiecesHolder(int w, int h);
     myPiece piece;
+    myPiece tmpPiece;
     QGraphicsRectItem *kwadrat[4];
     QTimer * timer = new QTimer();
 
@@ -31,7 +32,7 @@ public:
     bool isStopped;
 
     int placedTab[10][15];
-    QGraphicsRectItem *ulozone[10*15];
+    QGraphicsRectItem *ulozone[4000];
     int ilosc_ulozonych;
 
     void keyPressEvent(QKeyEvent *event);
