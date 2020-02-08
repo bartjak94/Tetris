@@ -218,45 +218,20 @@ int myPiece::findPieceWithMaxY()
 }
 
 
-void myPiece::rotate()
+myPiece myPiece::rotate()
 {
-    if(pieceType!=5)
+    if(pieceType==5)
+        return *this;
+
+    myPiece temp;
+    temp.pieceType = pieceType;
+    for(int i=0;i<4;i++)
     {
-    int tablicaZastepcza[4][2];
-
-    for(int i=0; i<4; ++i) {
-        for(int j=0;j<2;j++)
-        {
-            tablicaZastepcza[i][j] = tablicaKwadratow[i][j];
-        }
+        temp.tablicaKwadratow[i][0] = -tablicaKwadratow[i][1];
+        temp.tablicaKwadratow[i][1] = tablicaKwadratow[i][0];
     }
-    setPieceBody();
+    return temp;
 
-    int offsetX = tablicaZastepcza[0][0] - tablicaKwadratow[0][0];
-    int offsetY = tablicaZastepcza[0][1] - tablicaKwadratow[0][1];
-    qDebug() << offsetX << offsetY;
-
-    for(int i=0; i<4; ++i) {
-        {
-        qDebug() << tablicaKwadratow[i][0] << ">" << tablicaKwadratow[i][1];
-        qDebug() << tablicaKwadratow[i][1] << ">" << -tablicaKwadratow[i][0];
-        tablicaZastepcza[i][0] = tablicaKwadratow[i][1];
-        tablicaZastepcza[i][1] = -tablicaKwadratow[i][0];
-        }
-    }
-
-    for(int i=0; i<4; ++i) {
-        for(int j=0;j<2;j++)
-        {
-            if(j==0)
-            tablicaKwadratow[i][j] = tablicaZastepcza[i][j] * offsetX;
-            else
-            tablicaKwadratow[i][j] = tablicaZastepcza[i][j] * offsetY;
-        }
-    }
-
-
-    }
 }
 
 

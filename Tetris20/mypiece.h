@@ -36,7 +36,7 @@ public:
 
     int findPieceWithMaxY();
 
-    void rotate();
+    myPiece rotate();
 };
 
 

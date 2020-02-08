@@ -30,10 +30,31 @@ PiecesHolder::PiecesHolder(int w, int h)
 
 void PiecesHolder::keyPressEvent(QKeyEvent *event)
 {
+    int tmp[4][2];
     if(event->key() == Qt::Key_Up)
     {
-        piece.rotate();
-        updateRects();
+        for(int i=0;i<4;i++)
+        {
+         qDebug() << "KW X: " << kwadrat[i]->rect().x(); //polozenie kazdego kwadratu w stosunku do poczatku figury
+         //qDebug() << "KW X: " << kwadrat[i]->x();  //polozenie calej figury w stosunku do punktu poczatkowego
+        // qDebug() << "Piece X: " << piece.getX(i) << "( " << 240 + piece.getX(i) * blockSize  << ")";
+
+         qDebug() << "KW Y: " << kwadrat[i]->rect().y();
+         //qDebug() << "KW Y: " << kwadrat[i]->y();
+         //qDebug() << "Piece Y: " << piece.getY(i) << "( " << piece.getY(i)*blockSize - piece.findMinY()*40 << ")";
+
+
+        }
+
+        piece = piece.rotate();
+        qDebug() << " ";
+        pieceCordX = width/2 + blockSize;
+        pieceCordY = 0;
+        for(int i=0;i<4;i++)
+        {
+            kwadrat[i]->setRect(pieceCordX+piece.getX(i)*blockSize,pieceCordY+piece.getY(i)*blockSize - piece.findMinY()*40,blockSize,blockSize);
+        }
+
     }
     if(event->key() == Qt::Key_Left)
     {
