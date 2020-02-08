@@ -22,9 +22,6 @@ PiecesHolder::PiecesHolder(int w, int h)
             placedTab[i][j] = 0;
         }
     }
-
-
-    //QTimer * timer = new QTimer();
     connect(timer,SIGNAL(timeout()),this,SLOT(updateHolder()));
     timer->start(500);
     isStopped = false;
@@ -64,21 +61,15 @@ void PiecesHolder::keyPressEvent(QKeyEvent *event)
         {
             isStopped = true;
             timer->stop();
-
         }
     }
-
     else if(event->key() == Qt::Key_D)
     {
-        qDebug() << "Wspolrzedne kwadratow klocka: ";
-        for(int i=0;i<4;i++)
+        for(int l = 0;l<15;l++)
         {
-            qDebug() << "Klocek " << i << ": " <<  kwadrat[i]->rect().x() + kwadrat[i]->x() << "," << kwadrat[i]->rect().y() + kwadrat[i]->y();
+                qDebug() << placedTab[0][l] << placedTab[1][l] << placedTab[2][l] << placedTab[3][l] << placedTab[4][l] << placedTab[5][l] << placedTab[6][l] << placedTab[7][l] << placedTab[8][l] << placedTab[9][l];
         }
-
     }
-
-
 }
 
 void PiecesHolder::drawRects()
@@ -137,7 +128,6 @@ void PiecesHolder::moveRectsDown()
             {
                 getNewPiece = true;
             }
-
     }
 
 }
@@ -185,10 +175,9 @@ void PiecesHolder::grabNewPiece(bool b)
         {
             val1 = (kwadrat[i]->rect().x() + kwadrat[i]->x())/40;
             val2 = (kwadrat[i]->rect().y() + kwadrat[i]->y())/40;
-           // qDebug() << "NL kwadrat[" << i << "] X = " << kwadrat[i]->rect().x() + kwadrat[i]->x() <<   "Y = " << kwadrat[i]->rect().y() + kwadrat[i]->y();
             placedTab[val1][val2] = 1;
             ulozone[ilosc_ulozonych+i] = kwadrat[i];
-        }
+           }
         ilosc_ulozonych+=4;
         drawRects();
     }
@@ -218,7 +207,7 @@ void PiecesHolder::checkForFullLines()
             if(placedTab[j][i] == 1)
                 elementsInLine ++;
             if(elementsInLine == 10)
-                dropLine(j);
+                dropLine(i);
         }
         elementsInLine = 0;
     }
@@ -226,31 +215,44 @@ void PiecesHolder::checkForFullLines()
 
 void PiecesHolder::dropLine(int a)
 {
-    int v1,v2;
-    qDebug() << ilosc_ulozonych;
+    qDebug() << heigth - (((heigth/blockSize) - a )* blockSize);
+    int v1 = 0;
+    int v2 = 0;
     for(int i = 0; i<ilosc_ulozonych;i++)
     {
-        if(ulozone[i]->rect().x() + ulozone[i]->x() == heigth - a * blockSize)
+        if(ulozone[i]->rect().y() + ulozone[i]->y() == heigth - (((heigth/blockSize) - a )* blockSize))
         {
             v1 = (ulozone[i]->rect().x() + ulozone[i]->x())  / 40;
             v2 = (ulozone[i]->rect().y() + ulozone[i]->y())  / 40;
             //scene()->removeItem(ulozone[i]);
             ulozone[i]->setPos(1000,1000);
             placedTab[v1][v2] = 0;
-            qDebug() << "usunieto klocek w (" <<
-                        ulozone[i]->rect().x() << "+" << ulozone[i]->x() << "),(" << ulozone[i]->rect().y() << "+" <<  ulozone[i]->y() << ") , (" << v1 << "," << v2 << ")";
-        }
-        else if(ulozone[i]->rect().x() + ulozone[i]->x() < heigth - a * blockSize)
+            }
+    }
+    dropAllPiecesDown((heigth/blockSize) - a);
+
+}
+
+void PiecesHolder::dropAllPiecesDown(int X)
+{
+    int v1,v2;
+    int h;
+    for(h=heigth-(X*blockSize) ; h>0 ; h-=blockSize) //sprawdzamy od dolu
+    {
+        for(int i=0;i<ilosc_ulozonych;i++) //sprawdzamy kazdy element z ulozonych
         {
-            v1 = (ulozone[i]->rect().x() + ulozone[i]->x())  / 40;
-            v2 = (ulozone[i]->rect().y() + ulozone[i]->y())  / 40;
+            v1 = (ulozone[i]->rect().x() + ulozone[i]->x())  / blockSize;
+            v2 = (ulozone[i]->rect().y() + ulozone[i]->y())  / blockSize;
+
+            if(v2 == h/blockSize) //jezeli klocek jest na tej samej wysokosci
+            {
             ulozone[i]->moveBy(0,blockSize);
-            placedTab[v1][v2+blockSize] = 1;
             placedTab[v1][v2] = 0;
+            placedTab[v1][v2+1] = 1;
+            }
 
         }
     }
-
 }
 
 void PiecesHolder::updateHolder()
@@ -260,8 +262,8 @@ void PiecesHolder::updateHolder()
     else
     {
         moveRectsDown();
-        checkForFullLines();
         grabNewPiece(getNewPiece);
+        checkForFullLines();
 
     }
 

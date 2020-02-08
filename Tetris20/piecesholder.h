@@ -45,6 +45,8 @@ public:
     void checkForFullLines();
     void dropLine(int a);
 
+    void dropAllPiecesDown(int X);
+
 
 public slots:
     void updateHolder();
