@@ -9,9 +9,16 @@ PiecesHolder::PiecesHolder(int w, int h)
     realWidth = w/blockSize;
     realHeigth = h/blockSize;
 
+    pieceCordX = width/2 + blockSize;
+    pieceCordY = 0;
+    leftBound = width + blockSize;
+
+    score = 0;
+    level = 1;
+
     piece = myPiece(w,h,blockSize);
 
-    init = false;
+    initFinished = false;
     getNewPiece = false;
     ilosc_ulozonych = 0;
 
@@ -23,7 +30,7 @@ PiecesHolder::PiecesHolder(int w, int h)
         }
     }
     connect(timer,SIGNAL(timeout()),this,SLOT(updateHolder()));
-    timer->start(500);
+    timer->start(500 - level);
     isStopped = false;
 
 }
@@ -36,13 +43,11 @@ void PiecesHolder::keyPressEvent(QKeyEvent *event)
         int t2 = 0;
         bool canRotate = true;
         tmpPiece = piece.rotate();
-        pieceCordX = width/2 + blockSize;
-        pieceCordY = 0;
         for(int i=0;i<4;i++)
         {
             t1 = kwadrat[i]->x() + pieceCordX + tmpPiece.getX(i)*blockSize; //x real
             t2 = kwadrat[i]->y() +pieceCordY+tmpPiece.getY(i)*blockSize - tmpPiece.findMinY()*blockSize; //y real
-            qDebug() << t1 << t2;
+            //qDebug() << t1 << t2;
             if(     //jezeli jest na prawo od 0
                     t1 < 0
                     || //i na lewo od 400
@@ -107,17 +112,35 @@ void PiecesHolder::keyPressEvent(QKeyEvent *event)
     {
         for(int l = 0;l<15;l++)
         {
-                qDebug() << placedTab[0][l] << placedTab[1][l] << placedTab[2][l] << placedTab[3][l] << placedTab[4][l] << placedTab[5][l] << placedTab[6][l] << placedTab[7][l] << placedTab[8][l] << placedTab[9][l];
+                //qDebug() << placedTab[0][l] << placedTab[1][l] << placedTab[2][l] << placedTab[3][l] << placedTab[4][l] << placedTab[5][l] << placedTab[6][l] << placedTab[7][l] << placedTab[8][l] << placedTab[9][l];
         }
     }
 }
 
 void PiecesHolder::drawRects()
 { //400x600
-    piece = myPiece(width,heigth,blockSize);
-    pieceCordX = width/2 + blockSize;
-    pieceCordY = 0;
-    //qDebug() << pieceCordX << pieceCordY;
+    //po pierwszym obrocie
+    if(initFinished)
+    {
+        //qDebug() << "KOLEJNY OBROT!!";
+        piece = nextPiece;
+        generateNextPiece();
+
+    }
+    //pierwszy obrot
+    else
+    {
+        //qDebug() << "PIERWSZY OBROT!!!";
+       piece = myPiece(width,heigth,blockSize);
+       generateNextPiece();
+
+       wynik = new QGraphicsSimpleTextItem();
+       wynik->setText(QString::number(score));
+       wynik->setPos(leftBound,6*blockSize);
+       wynik->setFont(QFont("Arial",30));
+       scene()->addItem(wynik);
+    }
+
     for(int i=0;i<4;i++)
     {
         kwadrat[i] = new QGraphicsRectItem();
@@ -153,7 +176,7 @@ void PiecesHolder::drawRects()
         else
             timer->stop();
     }
-    init = true;
+    initFinished = true;
 }
 
 void PiecesHolder::moveRectsDown()
@@ -183,7 +206,7 @@ void PiecesHolder::moveRectsRight()
     {
         for(int i=0;i<4;i++)
         {
-            if(  (kwadrat[i]->x() + blockSize*piece.findMaxX()) < 120   )
+            if(  (kwadrat[i]->x() + blockSize*piece.findMaxX()) < (width - (pieceCordX + blockSize))   )
             kwadrat[i]->moveBy(blockSize,0);
         }
     }
@@ -195,7 +218,7 @@ void PiecesHolder::moveRectsLeft()
     {
         for(int i=0;i<4;i++)
         {
-            if(  (kwadrat[i]->x() + blockSize*piece.findMinX()) > -240   )
+            if(  (kwadrat[i]->x() + blockSize*piece.findMinX()) > -pieceCordX   )
             kwadrat[i]->moveBy(-blockSize,0);
         }
     }
@@ -260,7 +283,7 @@ void PiecesHolder::checkForFullLines()
 
 void PiecesHolder::dropLine(int a)
 {
-    qDebug() << heigth - (((heigth/blockSize) - a )* blockSize);
+    //qDebug() << heigth - (((heigth/blockSize) - a )* blockSize);
     int v1 = 0;
     int v2 = 0;
     for(int i = 0; i<ilosc_ulozonych;i++)
@@ -269,12 +292,17 @@ void PiecesHolder::dropLine(int a)
         {
             v1 = (ulozone[i]->rect().x() + ulozone[i]->x())  / blockSize;
             v2 = (ulozone[i]->rect().y() + ulozone[i]->y())  / blockSize;
-            //scene()->removeItem(ulozone[i]);
-            ulozone[i]->setPos(1000,1000);
+            ulozone[i]->setPos(2*width,2*heigth);
             placedTab[v1][v2] = 0;
             }
     }
     dropAllPiecesDown((heigth/blockSize) - a);
+    score+=10;
+    wynik->setText(QString::number(score));
+    timer->stop();
+    if(level < 300)
+        level = level + 10;
+    timer->start(500 - level);
 
 }
 
@@ -300,10 +328,53 @@ void PiecesHolder::dropAllPiecesDown(int X)
     }
 }
 
+void PiecesHolder::generateNextPiece()
+{
+
+    nextPiece = myPiece(width,heigth,blockSize);
+
+    for(int i=0;i<4;i++)
+    {
+        if(initFinished)
+        scene()->removeItem(nextPieceBlocks[i]);
+        nextPieceBlocks[i] = new QGraphicsRectItem();
+        switch(nextPiece.pieceType) //0-6
+        {
+        case 0:
+            nextPieceBlocks[i]->setBrush(Qt::red);
+            break;
+        case 1:
+            nextPieceBlocks[i]->setBrush(Qt::yellow);
+            break;
+        case 2:
+            nextPieceBlocks[i]->setBrush(Qt::blue);
+            break;
+        case 3:
+            nextPieceBlocks[i]->setBrush(Qt::green);
+            break;
+        case 4:
+            nextPieceBlocks[i]->setBrush(Qt::cyan);
+            break;
+        case 5:
+            nextPieceBlocks[i]->setBrush(Qt::magenta);
+            break;
+        case 6:
+            nextPieceBlocks[i]->setBrush(Qt::gray);
+            break;
+        }
+        nextPieceBlocks[i]->setRect(leftBound+nextPiece.getX(i)*blockSize - nextPiece.findMinX()*blockSize,(pieceCordY+nextPiece.getY(i)*blockSize - nextPiece.findMinY()*blockSize) + blockSize,blockSize,blockSize);
+        scene()->addItem(nextPieceBlocks[i]);
+    }
+
+
+}
+
 void PiecesHolder::updateHolder()
 {
-    if(!init)
+    if(!initFinished)
+    {
             drawRects();
+    }
     else
     {
         moveRectsDown();
