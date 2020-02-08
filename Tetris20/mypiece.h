@@ -14,7 +14,6 @@ public:
     int tablicaKwadratow[4][2];
     int pieceType;
 
-
     bool reachedBottom = false;
     int windowH;
     int windowW;
@@ -25,17 +24,11 @@ public:
     void getCoordsOfRect();
     int getX(int i);
     int getY(int i);
-    bool moveOneDown();
-    bool moveOneLeft();
-    bool moveOneRight();
 
     int findMaxY();
     int findMinY();
     int findMinX();
     int findMaxX();
-
-    int findPieceWithMaxY();
-
     myPiece rotate();
 };
 

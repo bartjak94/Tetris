@@ -4,7 +4,6 @@ myPiece::myPiece(int w, int h, int s)
 {
     generatePieceType();
     setPieceBody();
-   // getCoordsOfRect();
     windowH = h;    //600
     windowW = w;    //400
     blockS = s;     //w/10 = 40
@@ -200,21 +199,6 @@ int myPiece::findMaxX()
             maxx = tablicaKwadratow[i][0] ;
     }
     return maxx;
-}
-
-int myPiece::findPieceWithMaxY()
-{
-    int maxy = tablicaKwadratow[0][1];
-    int pieceNumber = 0;
-    for(int i=0;i<4;i++)
-    {
-        if(maxy<tablicaKwadratow[i][1])
-        {
-            maxy = tablicaKwadratow[i][1];
-            pieceNumber = i;
-        }
-    }
-    return pieceNumber;
 }
 
 
